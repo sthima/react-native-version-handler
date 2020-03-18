@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start-ios": "node index.js ios stage squadra-app",
+    "start-android": "node index.js android stage squadra-app",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
