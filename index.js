@@ -13,13 +13,15 @@ const validateInput = () => {
 
   const args = process.argv;
   if (args.length < 5) {
-    console.log('usage: release [platform] [environment] [app_name]');
+    console.log('usage: release [platform] [environment] [app_name] <bump_type=build|minor|major>');
     process.exit(1);
   }
 
   const platform = args[2];
   const environment = args[3];
   const app_name = args[4];
+  const bump_type = args[5] || 'build';
+
 
   if(!['ios', 'android'].includes(platform)) {
     console.log(`Platform : ${platform} not found.`);
@@ -39,11 +41,16 @@ const validateInput = () => {
     process.exit(1);
   }
 
+  if(args[5] && !['build', 'minor'].includes(args[5])) {
+    console.log(`build_type ${args[5]} not implemented`);
+    process.exit(1);
+  }
+
   return { 
     platform,
     environment,
     app_name,
-    bump_type: 'build',
+    bump_type,
   };
 
 }
@@ -90,7 +97,7 @@ class IosRelease {
   }
 
   release_staging = async () => {
-    console.log(`Bumping build number...`);
+    console.log(`Bumping ${this.bump_type} number...`);
     const new_version = await this.bump();
 
     console.log(`New version number: ${new_version}`);
@@ -116,13 +123,27 @@ class IosRelease {
       case 'build':
         const build_number = await this.increment_build_number();
         const current_version = await this.get_current_version();
-        const new_version = `${this.environment}-ios-${current_version}.${build_number}`;
-        return new_version;
+        return `${this.environment}-ios-${current_version}.${build_number}`;
+      case 'minor':
+        const version_number = await this.increment_version_number();
+        return `${this.environment}-ios-${version_number}.${1}`;
       default:
-        return null;
+        throw new Error('Unknown bump type');
     }
   }
 
+  increment_version_number = async () => {
+    await this.reset_build_number();
+    const command = `fastlane run increment_version_number`;
+    const { stdout, stderr } = await exec(this.base_command + command);
+    return await this.get_current_version();
+  }
+
+  reset_build_number = async () => {
+    const command = `fastlane run increment_build_number build_number:"1"`;
+    const { stdout, stderr } = await exec(this.base_command + command);
+  }
+  
   increment_build_number = async () => {
     const command = `fastlane run increment_build_number`;
     const { stdout, stderr } = await exec(this.base_command + command);
@@ -195,15 +216,32 @@ class AndroidRelease {
   }
 
   bump = async () => {
-    switch(this.bump_type) {
-      case 'build':
-        const build_number = await this.increment_build_number();
-        const current_version = await this.get_current_version();
-        const new_version = `${this.environment}-android-${current_version}.${build_number}`;
-        return new_version;
-      default:
-        return null;
+    const build_number = await this.increment_build_number();
+    const current_version = await this.increment_version_name();
+    return `${this.environment}-android-${current_version}`;
+  }
+
+  increment_version_name = async () => {
+    const current_version_name = await this.get_current_version()
+    const numbers =  current_version_name.split('.');
+    if(numbers.length < 3) {
+      console.log('Current android version name not supported.');
+      console.log('Supported format: %d.%d.%d');
+      process.exit(1);
     }
+
+    const major = numbers[0];
+    const minor = numbers[1];
+    const build = numbers[2];
+
+    if(this.bump_type === 'build') {
+      return `${major}.${minor}.${(parseInt(build, 10) + 1)}`;
+    } else if (this.bump_type === 'minor') {
+      return `${major}.${(parseInt(minor, 10) + 1)}.${build}`;
+    } else if (this.bump_type === 'major') {
+      return `${(parseInt(major, 10) + 1)}.${minor}.${build}`;
+    }
+
   }
 
   increment_build_number = async () => {
