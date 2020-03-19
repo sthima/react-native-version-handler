@@ -1,13 +1,9 @@
 const util = require('util');
+const fs = require('fs');
 const exec = util.promisify(require('child_process').exec);
-
-const apps = {
-  'squadra-app':  {
-    project_path: '/Users/joaoschaab/Sthima/squadra-app',
-    xcodeproj: 'SquadraApp.xcodeproj',
-    target: 'SquadraApp',
-  },
-}
+const homedir = require('os').homedir();
+const json_file = `${homedir}/.projects.config.json`;
+const apps = JSON.parse(fs.readFileSync(json_file));
 
 const validateInput = () => {
 
