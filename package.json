@@ -17,5 +17,8 @@
   "bugs": {
     "url": "https://github.com/joaoschaab/version-handler/issues"
   },
-  "homepage": "https://github.com/joaoschaab/version-handler#readme"
+  "homepage": "https://github.com/joaoschaab/version-handler#readme",
+  "bin": {
+    "release": "./index.js"
+  }
 }
