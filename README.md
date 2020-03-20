@@ -52,18 +52,15 @@ fastlane add_plugin fastlane-plugin-versioning_android
 ## install
 
 ```
-  npm install -g react-native-version-handler
+npm install -g react-native-version-handler
 ```
 
 ## running
-
 ```
 usage: release [platform] [environment] [app_name] <bump_type=build|minor|major>
 ```
 
 Example
-
 ```
 release ios stage squadra-app minor
-```
 ```
