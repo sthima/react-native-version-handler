@@ -4,9 +4,22 @@ Bump, commit, push and create tags for your react-native (android/ios) project.
 
 ## setup
 
-This project uses *fastlane* to increment build version, so you will have to install it in your project.
+### Create a file ".projects.config.json" in your home. Configure the projects that you want to use with this script. 
+Example:
+```
+{
+  "squadra-app":  {
+    "project_path": "/Users/joaoschaab/Sthima/squadra-app",
+    "xcodeproj": "SquadraApp.xcodeproj",
+    "target": "SquadraApp"
+  }
+}
+```
 
 ### Installing fastlane
+
+This project uses *fastlane* to increment build version, so you will have to install it in your project.
+
 Install the latest Xcode command line tools:
 
 ```xcode-select --install```
@@ -24,5 +37,33 @@ Install the latest Xcode command line tools:
 
 ### setup fastlane android
 
-```cd your_project/android && fastlane init``` 
+```cd your_project/android && fastlane init```
 
+```
+#After that, add the following plugins:
+fastlane add_plugin fastlane-plugin-increment_version_code
+fastlane add_plugin fastlane-plugin-get_version_code
+fastlane add_plugin fastlane-plugin-get_version_name
+fastlane add_plugin fastlane-plugin-commit_android_version_bump
+fastlane add_plugin fastlane-plugin-versioning_android
+
+```
+
+## install
+
+```
+  npm install -g react-native-version-handler
+```
+
+## running
+
+```
+usage: release [platform] [environment] [app_name] <bump_type=build|minor|major>
+```
+
+Example
+
+```
+release ios stage squadra-app minor
+```
+```
