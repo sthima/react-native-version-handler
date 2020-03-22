@@ -100,20 +100,20 @@ class IosRelease {
 
     console.log(`New version number: ${new_version}`);
 
-    console.log('Committing...')
-    await this.commit(new_version);
-    console.log('Finished commit.');
+    // console.log('Committing...')
+    // await this.commit(new_version);
+    // console.log('Finished commit.');
 
-    console.log('Pushing to origin...');
-    await push(this.base_command);
-    console.log('Push finished.');
+    // console.log('Pushing to origin...');
+    // await push(this.base_command);
+    // console.log('Push finished.');
 
-    console.log('Adding new tag');
-    await add_git_tag(this.base_command, new_version);
+    // console.log('Adding new tag');
+    // await add_git_tag(this.base_command, new_version);
 
-    console.log(`Pushing new tag... -> ${new_version}`);
-    await push_tag(this.base_command, new_version);
-    console.log('Push tag finished.');
+    // console.log(`Pushing new tag... -> ${new_version}`);
+    // await push_tag(this.base_command, new_version);
+    // console.log('Push tag finished.');
   }
 
   bump = async () => {
@@ -155,9 +155,12 @@ class IosRelease {
   }
 
   get_current_version = async () => {
+    console.log(this.xcodeproj);
+    console.log(this.target);
     const fastlane_command = `fastlane run get_version_number xcodeproj:"${this.xcodeproj}" target:"${this.target}"`;
     const command = `${this.base_command}${fastlane_command} | sed -E "s/\x1B\[([0-9]{1,3}(;[0-9]{1,2})?)?[mGK]//g"`;
     const { stdout, stderr } = await exec(command);
+    console.log(stdout);
     return stdout.split(':').pop().replace(/^\s+|\s+$/g, '').trim();
   }
 
@@ -194,7 +197,6 @@ class AndroidRelease {
   release_staging = async () => {
     console.log(`Bumping build number...`);
     const new_version = await this.bump();
-
     console.log(`New version number: ${new_version}`);
 
     console.log('Committing...')
@@ -232,13 +234,20 @@ class AndroidRelease {
     const minor = numbers[1];
     const build = numbers[2];
 
+    let new_version_name = '';
+
     if(this.bump_type === 'build') {
-      return `${major}.${minor}.${(parseInt(build, 10) + 1)}`;
+      new_version_name = `${major}.${minor}.${(parseInt(build, 10) + 1)}`;
     } else if (this.bump_type === 'minor') {
-      return `${major}.${(parseInt(minor, 10) + 1)}.${build}`;
+      new_version_name = `${major}.${(parseInt(minor, 10) + 1)}.${build}`;
     } else if (this.bump_type === 'major') {
-      return `${(parseInt(major, 10) + 1)}.${minor}.${build}`;
+      new_version_name = `${(parseInt(major, 10) + 1)}.${minor}.${build}`;
     }
+
+
+    const fastlane_command = `fastlane run android_set_version_name version_name:"${new_version_name}"`;
+    const { stdout, stderr } = await exec(this.base_command + fastlane_command);
+    return new_version_name;
 
   }
 
