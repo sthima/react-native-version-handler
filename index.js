@@ -131,8 +131,8 @@ class IosRelease {
   }
 
   increment_version_number = async () => {
-    await this.reset_build_number();
-    const command = `fastlane run increment_version_number`;
+    // await this.reset_build_number();
+    const command = `fastlane run increment_version_number_in_xcodeproj bump_type:"patch" target:"${this.target}"`;
     const { stdout, stderr } = await exec(this.base_command + command);
     return await this.get_current_version();
   }
@@ -155,12 +155,9 @@ class IosRelease {
   }
 
   get_current_version = async () => {
-    console.log(this.xcodeproj);
-    console.log(this.target);
     const fastlane_command = `fastlane run get_version_number xcodeproj:"${this.xcodeproj}" target:"${this.target}"`;
     const command = `${this.base_command}${fastlane_command} | sed -E "s/\x1B\[([0-9]{1,3}(;[0-9]{1,2})?)?[mGK]//g"`;
     const { stdout, stderr } = await exec(command);
-    console.log(stdout);
     return stdout.split(':').pop().replace(/^\s+|\s+$/g, '').trim();
   }
 
