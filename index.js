@@ -11,14 +11,14 @@ const validateInput = () => {
 
   const args = process.argv;
   if (args.length < 5) {
-    console.log('usage: release [platform] [environment] [app_name] <bump_type=build|minor|major>');
+    console.log('usage: release [platform] [environment] [app_name] <bump_type=patch|minor|major>');
     process.exit(1);
   }
 
   const platform = args[2];
   const environment = args[3];
   const app_name = args[4];
-  const bump_type = args[5] || 'build';
+  const bump_type = args[5] || 'patch';
 
 
   if(!['ios', 'android'].includes(platform)) {
@@ -39,7 +39,7 @@ const validateInput = () => {
     process.exit(1);
   }
 
-  if(args[5] && !['build', 'minor'].includes(args[5])) {
+  if(args[5] && !['patch', 'minor'].includes(args[5])) {
     console.log(`build_type ${args[5]} not implemented`);
     process.exit(1);
   }
@@ -117,22 +117,12 @@ class IosRelease {
   }
 
   bump = async () => {
-    switch(this.bump_type) {
-      case 'build':
-        const build_number = await this.increment_build_number();
-        const current_version = await this.get_current_version();
-        return `${this.environment}-ios-${current_version}.${build_number}`;
-      case 'minor':
-        const version_number = await this.increment_version_number();
-        return `${this.environment}-ios-${version_number}.${1}`;
-      default:
-        throw new Error('Unknown bump type');
-    }
+    const version_number = await this.increment_version_number();
+    return `${this.environment}-ios-${version_number}`;
   }
 
   increment_version_number = async () => {
-    // await this.reset_build_number();
-    const command = `fastlane run increment_version_number_in_xcodeproj bump_type:"minor" target:"${this.target}"`;
+    const command = `fastlane run increment_version_number bump_type:"${this.bump_type}" xcodeproj:"${this.xcodeproj}"`;
     const { stdout, stderr } = await exec(this.base_command + command);
     return await this.get_current_version();
   }
@@ -229,16 +219,16 @@ class AndroidRelease {
 
     const major = numbers[0];
     const minor = numbers[1];
-    const build = numbers[2];
+    const patch = numbers[2];
 
     let new_version_name = '';
 
-    if(this.bump_type === 'build') {
-      new_version_name = `${major}.${minor}.${(parseInt(build, 10) + 1)}`;
+    if(this.bump_type === 'patch') {
+      new_version_name = `${major}.${minor}.${(parseInt(patch, 10) + 1)}`;
     } else if (this.bump_type === 'minor') {
-      new_version_name = `${major}.${(parseInt(minor, 10) + 1)}.${build}`;
+      new_version_name = `${major}.${(parseInt(minor, 10) + 1)}.${patch}`;
     } else if (this.bump_type === 'major') {
-      new_version_name = `${(parseInt(major, 10) + 1)}.${minor}.${build}`;
+      new_version_name = `${(parseInt(major, 10) + 1)}.${minor}.${patch}`;
     }
 
 
