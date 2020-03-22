@@ -19,6 +19,6 @@
   },
   "homepage": "https://github.com/joaoschaab/version-handler#readme",
   "bin": {
-    "release-tag": "./index.js"
+    "release": "./index.js"
   }
 }

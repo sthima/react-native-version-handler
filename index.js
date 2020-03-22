@@ -100,20 +100,20 @@ class IosRelease {
 
     console.log(`New version number: ${new_version}`);
 
-    // console.log('Committing...')
-    // await this.commit(new_version);
-    // console.log('Finished commit.');
+    console.log('Committing...')
+    await this.commit(new_version);
+    console.log('Finished commit.');
 
-    // console.log('Pushing to origin...');
-    // await push(this.base_command);
-    // console.log('Push finished.');
+    console.log('Pushing to origin...');
+    await push(this.base_command);
+    console.log('Push finished.');
 
-    // console.log('Adding new tag');
-    // await add_git_tag(this.base_command, new_version);
+    console.log('Adding new tag');
+    await add_git_tag(this.base_command, new_version);
 
-    // console.log(`Pushing new tag... -> ${new_version}`);
-    // await push_tag(this.base_command, new_version);
-    // console.log('Push tag finished.');
+    console.log(`Pushing new tag... -> ${new_version}`);
+    await push_tag(this.base_command, new_version);
+    console.log('Push tag finished.');
   }
 
   bump = async () => {
