@@ -132,7 +132,7 @@ class IosRelease {
 
   increment_version_number = async () => {
     // await this.reset_build_number();
-    const command = `fastlane run increment_version_number_in_xcodeproj bump_type:"patch" target:"${this.target}"`;
+    const command = `fastlane run increment_version_number_in_xcodeproj bump_type:"minor" target:"${this.target}"`;
     const { stdout, stderr } = await exec(this.base_command + command);
     return await this.get_current_version();
   }
