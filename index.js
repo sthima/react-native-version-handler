@@ -261,7 +261,7 @@ class AndroidRelease {
     const commit_message = `Bump ${this.environment} android version to -> ${build_number}`;
     // const commit_command = `fastlane run commit_android_version_bump message:"${commit_message}" gradle_file_folder: "${this.project_path}/android/app"`;
     const git_add = `git add ./app/build.gradle"`;
-    const { stdout, stderr } = await exec(this.base_command + git_add);
+    await exec(this.base_command + git_add);
     const commit_command = `git commit -m "${commit_message}"`;
     const { stdout, stderr } = await exec(this.base_command + commit_command);
     return stdout;
