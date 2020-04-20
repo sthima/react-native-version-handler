@@ -259,7 +259,7 @@ class AndroidRelease {
 
   commit = async (build_number) => {
     const commit_message = `Bump ${this.environment} android version to -> ${build_number}`;
-    const commit_command = `fastlane run commit_android_version_bump message:"${commit_message}"`;
+    const commit_command = `fastlane run commit_android_version_bump message:"${commit_message}" gradle_file_folder: "${this.project_path}/android/app"`;
     const { stdout, stderr } = await exec(this.base_command + commit_command);
     return stdout;
   }
