@@ -57,10 +57,10 @@ npm install -g react-native-version-handler
 
 ## running
 ```
-usage: release-tag [platform] [environment] [app_name] <bump_type=build|minor|major>
+usage: release [platform] [environment] [app_name] <bump_type=build|minor|major>
 ```
 
 Example
 ```
-release-tag ios stage squadra-app minor
+release ios stage squadra-app minor
 ```
