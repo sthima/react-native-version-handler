@@ -89,7 +89,7 @@ class IosRelease {
         this.release_staging();
       break;
       case 'production':
-        console.log('production');
+        this.release_staging();
       break;
     }
   }
@@ -176,7 +176,7 @@ class AndroidRelease {
         this.release_staging();
       break;
       case 'production':
-        console.log('production');
+        this.release_staging();
       break;
     }
   }
