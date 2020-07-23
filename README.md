@@ -57,7 +57,7 @@ npm install -g react-native-version-handler
 
 ## running
 ```
-usage: release [platform] [environment] [app_name] <bump_type=build|minor|major>
+usage: release [platform] [environment] [app_name] <bump_type=minor|patch>
 ```
 
 Example
