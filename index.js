@@ -7,6 +7,13 @@ const homedir = require('os').homedir();
 const json_file = `${homedir}/.projects.config.json`;
 const apps = JSON.parse(fs.readFileSync(json_file));
 
+const updateFastlane = async () => {
+  console.log('Updating fastlane.. =)');
+  const command = `sudo gem install fastlane`;
+  const { stdout, stderr } = await exec(command);
+  return stdout;
+}
+
 const validateInput = () => {
 
   const args = process.argv;
@@ -21,30 +28,30 @@ const validateInput = () => {
   const bump_type = args[5] || 'patch';
 
 
-  if(!['ios', 'android'].includes(platform)) {
+  if (!['ios', 'android'].includes(platform)) {
     console.log(`Platform : ${platform} not found.`);
     console.log(`Available platforms are: [ios, android]`);
     process.exit(1);
   }
 
-  if(!['production', 'stage'].includes(environment)) {
+  if (!['production', 'stage'].includes(environment)) {
     console.log(`Environment : ${environment} not found.`);
     console.log(`Available environments are: [production, stage]`);
     process.exit(1);
   }
 
-  if(!apps[app_name]) {
+  if (!apps[app_name]) {
     console.log(`App Name: ${app_name} not found.`);
     console.log(`Available apps are: [${Object.keys(apps)}]`);
     process.exit(1);
   }
 
-  if(args[5] && !['patch', 'minor'].includes(args[5])) {
+  if (args[5] && !['patch', 'minor'].includes(args[5])) {
     console.log(`build_type ${args[5]} not implemented`);
     process.exit(1);
   }
 
-  return { 
+  return {
     platform,
     environment,
     app_name,
@@ -72,7 +79,7 @@ const push_tag = async (base_command, tag) => {
 }
 
 class IosRelease {
-  
+
   constructor(data) {
     this.app_name = data.app_name;
     this.project_path = data.project_path;
@@ -84,13 +91,13 @@ class IosRelease {
   }
 
   release = () => {
-    switch(this.environment) {
+    switch (this.environment) {
       case 'stage':
         this.release_staging();
-      break;
+        break;
       case 'production':
         this.release_staging();
-      break;
+        break;
     }
   }
 
@@ -131,7 +138,7 @@ class IosRelease {
     const command = `fastlane run increment_build_number build_number:"1"`;
     const { stdout, stderr } = await exec(this.base_command + command);
   }
-  
+
   increment_build_number = async () => {
     const command = `fastlane run increment_build_number`;
     const { stdout, stderr } = await exec(this.base_command + command);
@@ -146,8 +153,10 @@ class IosRelease {
 
   get_current_version = async () => {
     const fastlane_command = `fastlane run get_version_number xcodeproj:"${this.xcodeproj}" target:"${this.target}"`;
-    const command = `${this.base_command}${fastlane_command} | sed -E "s/\x1B\[([0-9]{1,3}(;[0-9]{1,2})?)?[mGK]//g"`;
-    const { stdout, stderr } = await exec(command);
+    const { stdout, stderr } = await exec(`${this.base_command}${fastlane_command}`);
+    console.log(stdout);
+    // const command = `${this.base_command}${fastlane_command} | sed -E "s/\x1B\[([0-9]{1,3}(;[0-9]{1,2})?)?[mGK]//g"`;
+    // const { stdout, stderr } = await exec(command);
     return stdout.split(':').pop().replace(/^\s+|\s+$/g, '').trim();
   }
 
@@ -161,7 +170,7 @@ class IosRelease {
 }
 
 class AndroidRelease {
-  
+
   constructor(data) {
     this.app_name = data.app_name;
     this.project_path = data.project_path;
@@ -171,13 +180,13 @@ class AndroidRelease {
   }
 
   release = () => {
-    switch(this.environment) {
+    switch (this.environment) {
       case 'stage':
         this.release_staging();
-      break;
+        break;
       case 'production':
         this.release_staging();
-      break;
+        break;
     }
   }
 
@@ -210,8 +219,8 @@ class AndroidRelease {
 
   increment_version_name = async () => {
     const current_version_name = await this.get_current_version()
-    const numbers =  current_version_name.split('.');
-    if(numbers.length < 3) {
+    const numbers = current_version_name.split('.');
+    if (numbers.length < 3) {
       console.log('Current android version name not supported.');
       console.log('Supported format: %d.%d.%d');
       process.exit(1);
@@ -223,10 +232,10 @@ class AndroidRelease {
 
     let new_version_name = '';
 
-    if(this.bump_type === 'patch') {
+    if (this.bump_type === 'patch') {
       new_version_name = `${major}.${minor}.${(parseInt(patch, 10) + 1)}`;
     } else if (this.bump_type === 'minor') {
-      new_version_name = `${major}.${(parseInt(minor, 10) + 1)}.${patch}`;
+      new_version_name = `${major}.${(parseInt(minor, 10) + 1)}.0`;
     } else if (this.bump_type === 'major') {
       new_version_name = `${(parseInt(major, 10) + 1)}.${minor}.${patch}`;
     }
@@ -269,11 +278,12 @@ class AndroidRelease {
 
 }
 
-const main = () => {
+const main = async () => {
   const input = validateInput();
+  await updateFastlane();
   const project = apps[input.app_name];
 
-  switch(input.platform) {
+  switch (input.platform) {
     case 'ios':
       const ios_release = new IosRelease({
         ...input,
@@ -281,7 +291,7 @@ const main = () => {
       })
       ios_release.release();
       break;
-    case 'android': 
+    case 'android':
       const android_release = new AndroidRelease({
         ...input,
         ...project,
