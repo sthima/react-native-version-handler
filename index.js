@@ -2,17 +2,12 @@
 
 const util = require('util');
 const fs = require('fs');
+const strip = require('strip-color');
+
 const exec = util.promisify(require('child_process').exec);
 const homedir = require('os').homedir();
 const json_file = `${homedir}/.projects.config.json`;
 const apps = JSON.parse(fs.readFileSync(json_file));
-
-const updateFastlane = async () => {
-  console.log('Updating fastlane.. =)');
-  const command = `sudo gem install fastlane`;
-  const { stdout, stderr } = await exec(command);
-  return stdout;
-}
 
 const validateInput = () => {
 
@@ -63,19 +58,19 @@ const validateInput = () => {
 const push = async (base_command) => {
   const command = `fastlane run push_to_git_remote`;
   const { stdout, stderr } = await exec(base_command + command);
-  return stdout;
+  return strip(stdout);
 }
 
 const add_git_tag = async (base_command, tag) => {
   const command = `fastlane run add_git_tag tag:${tag}`;
   const { stdout, stderr } = await exec(base_command + command);
-  return stdout;
+  return strip(stdout);
 }
 
 const push_tag = async (base_command, tag) => {
   const command = `fastlane run push_git_tags tag:${tag}`;
   const { stdout, stderr } = await exec(base_command + command);
-  return stdout;
+  return strip(stdout);
 }
 
 class IosRelease {
@@ -102,25 +97,30 @@ class IosRelease {
   }
 
   release_staging = async () => {
-    console.log(`Bumping ${this.bump_type} number...`);
-    const new_version = await this.bump();
+    try {
+      console.log(`Bumping ${this.bump_type} number...`);
+      const new_version = await this.bump();
 
-    console.log(`New version number: ${new_version}`);
+      console.log(`New version number: ${new_version}`);
 
-    console.log('Committing...')
-    await this.commit(new_version);
-    console.log('Finished commit.');
+      console.log('Committing...')
+      await this.commit(new_version);
+      console.log('Finished commit.');
 
-    console.log('Pushing to origin...');
-    await push(this.base_command);
-    console.log('Push finished.');
+      console.log('Pushing to origin...');
+      await push(this.base_command);
+      console.log('Push finished.');
 
-    console.log('Adding new tag');
-    await add_git_tag(this.base_command, new_version);
+      console.log('Adding new tag');
+      await add_git_tag(this.base_command, new_version);
 
-    console.log(`Pushing new tag... -> ${new_version}`);
-    await push_tag(this.base_command, new_version);
-    console.log('Push tag finished.');
+      console.log(`Pushing new tag... -> ${new_version}`);
+      await push_tag(this.base_command, new_version);
+      console.log('Push tag finished.');
+    } catch(e) {
+      console.log(e);
+      process.exit(1);
+    }
   }
 
   bump = async () => {
@@ -148,23 +148,22 @@ class IosRelease {
   get_build_number = async () => {
     const command = `agvtool what-version -terse`;
     const { stdout, stderr } = await exec(this.base_command + command);
-    return stdout.replace(/^\s+|\s+$/g, '');
+    return strip(stdout.replace(/^\s+|\s+$/g, ''));
   }
 
   get_current_version = async () => {
     const fastlane_command = `fastlane run get_version_number xcodeproj:"${this.xcodeproj}" target:"${this.target}"`;
     const { stdout, stderr } = await exec(`${this.base_command}${fastlane_command}`);
-    console.log(stdout);
     // const command = `${this.base_command}${fastlane_command} | sed -E "s/\x1B\[([0-9]{1,3}(;[0-9]{1,2})?)?[mGK]//g"`;
     // const { stdout, stderr } = await exec(command);
-    return stdout.split(':').pop().replace(/^\s+|\s+$/g, '').trim();
+    return strip(stdout.split(':').pop().replace(/^\s+|\s+$/g, '').trim());
   }
 
   commit = async (build_number) => {
     const commit_message = `Bump ${this.environment} ios version to -> ${build_number}`;
     const commit_command = `fastlane run commit_version_bump message:"${commit_message}" xcodeproj:"${this.xcodeproj}"`;
     const { stdout, stderr } = await exec(this.base_command + commit_command);
-    return stdout;
+    return strip(stdout);
   }
 
 }
@@ -191,24 +190,30 @@ class AndroidRelease {
   }
 
   release_staging = async () => {
-    console.log(`Bumping build number...`);
-    const new_version = await this.bump();
-    console.log(`New version number: ${new_version}`);
+    try {
+      console.log(`Bumping build number...`);
+      const new_version = await this.bump();
+      console.log(`New version number: ${new_version}`);
 
-    console.log('Committing...')
-    await this.commit(new_version);
-    console.log('Finished commit.');
+      console.log('Committing...')
+      await this.commit(new_version);
+      console.log('Finished commit.');
 
-    console.log('Pushing to origin...');
-    await push(this.base_command);
-    console.log('Push finished.');
+      console.log('Pushing to origin...');
+      await push(this.base_command);
+      console.log('Push finished.');
 
-    console.log('Adding new tag');
-    await add_git_tag(this.base_command, new_version);
+      console.log('Adding new tag');
+      await add_git_tag(this.base_command, new_version);
 
-    console.log(`Pushing new tag... -> ${new_version}`);
-    await push_tag(this.base_command, new_version);
-    console.log('Push tag finished.');
+      console.log(`Pushing new tag... -> ${new_version}`);
+      await push_tag(this.base_command, new_version);
+      console.log('Push tag finished.');
+    } catch (e) {
+      console.log(e);
+      process.exit(1);
+    }
+
   }
 
   bump = async () => {
@@ -256,14 +261,14 @@ class AndroidRelease {
   get_build_number = async () => {
     const command = `fastlane run get_version_code | sed -E "s/\x1B\[([0-9]{1,3}(;[0-9]{1,2})?)?[mGK]//g"`;
     const { stdout, stderr } = await exec(this.base_command + command);
-    return stdout.split(':').pop().replace(/^\s+|\s+$/g, '').trim();
+    return strip(stdout.split(':').pop().replace(/^\s+|\s+$/g, '').trim());
   }
 
   get_current_version = async () => {
     const fastlane_command = `fastlane run get_version_name`;
     const command = `${this.base_command}${fastlane_command} | sed -E "s/\x1B\[([0-9]{1,3}(;[0-9]{1,2})?)?[mGK]//g"`;
     const { stdout, stderr } = await exec(command);
-    return stdout.split(':').pop().replace(/^\s+|\s+$/g, '').trim();
+    return strip(stdout.split(':').pop().replace(/^\s+|\s+$/g, '').trim());
   }
 
   commit = async (build_number) => {
@@ -273,14 +278,13 @@ class AndroidRelease {
     await exec(this.base_command + git_add);
     const commit_command = `git commit -m "${commit_message}"`;
     const { stdout, stderr } = await exec(this.base_command + commit_command);
-    return stdout;
+    return strip(stdout);
   }
 
 }
 
 const main = async () => {
   const input = validateInput();
-  await updateFastlane();
   const project = apps[input.app_name];
 
   switch (input.platform) {

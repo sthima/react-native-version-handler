@@ -20,5 +20,8 @@
   "homepage": "https://github.com/joaoschaab/version-handler#readme",
   "bin": {
     "release": "./index.js"
+  },
+  "dependencies": {
+    "strip-color": "^0.1.0"
   }
 }
