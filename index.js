@@ -16,7 +16,7 @@ const validateInput = () => {
     '--tagname' : String
   });
      
-  if (args._.length < 4) {
+  if (args._.length < 3) {
     console.log('usage: release [platform] [environment] [app_name] <bump_type=patch|minor|major> --tagname=custom_tag_name');
     process.exit(1);
   }
