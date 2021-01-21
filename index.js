@@ -24,7 +24,7 @@ const validateInput = () => {
   const platform = args._[1];
   const environment = args._[2];
   const app_name = args._[3];
-  const bump_type = args._[5] || 'patch';
+  const bump_type = args._[4] || 'patch';
   const custom_name_tag = args['--tagname'] || ''
 
  
