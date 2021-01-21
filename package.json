@@ -22,6 +22,7 @@
     "release": "./index.js"
   },
   "dependencies": {
+    "arg": "^5.0.0",
     "strip-color": "^0.1.0"
   }
 }

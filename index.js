@@ -3,6 +3,7 @@
 const util = require('util');
 const fs = require('fs');
 const strip = require('strip-color');
+const arg = require('arg');
 
 const exec = util.promisify(require('child_process').exec);
 const homedir = require('os').homedir();
@@ -11,18 +12,22 @@ const apps = JSON.parse(fs.readFileSync(json_file));
 
 const validateInput = () => {
 
-  const args = process.argv;
-  if (args.length < 5) {
-    console.log('usage: release [platform] [environment] [app_name] <bump_type=patch|minor|major>');
+  const args = arg({
+    '--tagname' : String
+  });
+     
+  if (args._.length < 4) {
+    console.log('usage: release [platform] [environment] [app_name] <bump_type=patch|minor|major> --tagname=custom_tag_name');
     process.exit(1);
   }
 
-  const platform = args[2];
-  const environment = args[3];
-  const app_name = args[4];
-  const bump_type = args[5] || 'patch';
+  const platform = args._[1];
+  const environment = args._[2];
+  const app_name = args._[3];
+  const bump_type = args._[5] || 'patch';
+  const custom_name_tag = args['--tagname'] || ''
 
-
+ 
   if (!['ios', 'android'].includes(platform)) {
     console.log(`Platform : ${platform} not found.`);
     console.log(`Available platforms are: [ios, android]`);
@@ -45,12 +50,13 @@ const validateInput = () => {
     console.log(`build_type ${args[5]} not implemented`);
     process.exit(1);
   }
-
+  
   return {
     platform,
     environment,
     app_name,
     bump_type,
+    custom_name_tag
   };
 
 }
@@ -83,6 +89,7 @@ class IosRelease {
     this.environment = data.environment;
     this.bump_type = data.bump_type;
     this.base_command = `cd ${this.project_path}/ios && `;
+    this.custom_name_tag = data.custom_name_tag
   }
 
   release = () => {
@@ -125,7 +132,7 @@ class IosRelease {
 
   bump = async () => {
     const version_number = await this.increment_version_number();
-    return `${this.environment}-ios-${version_number}`;
+    return `${this.custom_name_tag || this.environment}-ios-${version_number}`;
   }
 
   increment_version_number = async () => {
@@ -176,6 +183,7 @@ class AndroidRelease {
     this.environment = data.environment;
     this.bump_type = data.bump_type;
     this.base_command = `cd ${this.project_path}/android && `;
+    this.custom_name_tag = data.custom_name_tag
   }
 
   release = () => {
@@ -219,7 +227,7 @@ class AndroidRelease {
   bump = async () => {
     const build_number = await this.increment_build_number();
     const current_version = await this.increment_version_name();
-    return `${this.environment}-android-${current_version}`;
+    return `${this.custom_name_tag || this.environment}-android-${current_version}`;
   }
 
   increment_version_name = async () => {
