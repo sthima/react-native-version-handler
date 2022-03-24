@@ -34,7 +34,7 @@ const validateInput = () => {
     process.exit(1);
   }
 
-  if (!["production", "stage"].includes(environment)) {
+  if (!["production", "stage", "feature"].includes(environment)) {
     console.log(`Environment : ${environment} not found.`);
     console.log(`Available environments are: [production, stage]`);
     process.exit(1);
@@ -96,6 +96,9 @@ class IosRelease {
         this.release_staging();
         break;
       case "production":
+        this.release_staging();
+        break;
+      case "feature":
         this.release_staging();
         break;
     }
@@ -196,6 +199,9 @@ class AndroidRelease {
         this.release_staging();
         break;
       case "production":
+        this.release_staging();
+        break;
+      case "feature":
         this.release_staging();
         break;
     }
